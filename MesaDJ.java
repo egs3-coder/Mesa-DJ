@@ -2,17 +2,6 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Atividade: Mesa de DJ utilizando Threads em Java.
- *
- * Requisitos atendidos:
- * - Cada instrumento roda em uma Thread independente.
- * - Pausa, retomada e encerramento individual de cada faixa.
- * - Sincronizacao com synchronized, wait() e notifyAll().
- * - BPM simulado com Thread.sleep().
- * - Thread extra para painel de status a cada 2 segundos.
- * - Adicao de novos instrumentos durante a execucao.
- */
 public class MesaDJ {
 
     private final Map<String, FaixaInstrumento> instrumentos = new ConcurrentHashMap<>();
