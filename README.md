@@ -1,6 +1,20 @@
 # 🎧 MesaDJ — Threads em Java
 
-> Aplicação em **Java** que simula uma mesa de DJ utilizando **Threads**, onde cada instrumento funciona de forma independente.
+> Aplicação desenvolvida em **Java** que simula uma mesa de DJ utilizando **Threads**, onde cada instrumento funciona de forma independente.
+
+---
+
+## 👥 Integrantes
+
+| Integrante                                 |
+| ------------------------------------------ |
+| 👨‍💻 **Ewerton Guilherme da Silva**       |
+| 👨‍💻 **Pablo Arthur Eustáquio de Lima**   |
+| 👨‍💻 **Saulo Eduardo Almeida dos Santos** |
+| 👨‍💻 **Lucas Aprigio dos Santos**         |
+| 👨‍💻 **João Ricardo Alves de Brito**      |
+| 👨‍💻 **Thiago Cardozo da Conceição**      |
+| 👨‍💻 **Eloi de Lima Sousa**               |
 
 ---
 
@@ -28,19 +42,19 @@ Assim, é possível **pausar, retomar, alterar o BPM ou encerrar uma faixa sem a
 ## ⚙️ Funcionalidades
 
 * 🧵 Cada instrumento possui uma **Thread independente**
-* ▶️ Iniciar instrumentos com `start()`
-* ⏸️ Pausar uma faixa
-* ▶️ Retomar uma faixa
-* 🛑 Encerrar uma faixa individualmente
-* 🔐 Controle de concorrência com `synchronized`
+* ▶️ Inicialização das Threads com `start()`
+* ⏸️ Pausar instrumentos individualmente
+* ▶️ Retomar instrumentos
+* 🛑 Encerrar uma faixa sem interromper as outras
+* 🔐 Sincronização utilizando `synchronized`
 * 💤 Pausa utilizando `wait()`
 * 🔔 Retomada utilizando `notifyAll()`
-* ⚡ Uso de `interrupt()`
-* 🥁 Controle de BPM com `Thread.sleep()`
-* 🖥️ Painel de status atualizado a cada **2 segundos**
+* ⚡ Controle utilizando `interrupt()`
+* 🥁 Simulação de BPM com `Thread.sleep()`
+* 🖥️ Painel atualizado automaticamente a cada **2 segundos**
 * ➕ Adição de novos instrumentos durante a execução
-* 📦 Armazenamento seguro utilizando `ConcurrentHashMap`
-* 🔚 Encerramento organizado utilizando `join()`
+* 📦 Utilização de `ConcurrentHashMap`
+* 🔚 Encerramento organizado das Threads
 
 ---
 
@@ -52,7 +66,7 @@ Cada instrumento é representado pela classe:
 class FaixaInstrumento extends Thread
 ```
 
-Ao criar um novo instrumento:
+Quando um instrumento é iniciado:
 
 ```java
 instrumento.start();
@@ -61,29 +75,27 @@ instrumento.start();
 uma nova Thread começa a executar o método:
 
 ```java
-run()
+run();
 ```
 
 Cada faixa possui seu próprio:
 
-```text
-🎵 Nome
-▶️ Estado
-🥁 BPM
-🔢 Quantidade de batidas
-```
+* 🎵 Nome
+* ▶️ Estado
+* 🥁 BPM
+* 🔢 Número de batidas
 
 ---
 
 ## 🔐 Sincronização
 
-Os estados dos instrumentos são protegidos com:
+Os estados dos instrumentos são protegidos utilizando:
 
 ```java
 synchronized
 ```
 
-Isso evita que duas Threads alterem o mesmo instrumento ao mesmo tempo.
+Isso evita que diferentes Threads alterem o mesmo estado simultaneamente.
 
 Para controlar pausa e retomada são utilizados:
 
@@ -97,47 +109,51 @@ interrupt();
 
 ## 🥁 Controle de BPM
 
-O intervalo entre as batidas é calculado usando:
+O intervalo entre as batidas é calculado utilizando:
 
-```java
+```text
 60000 / BPM
 ```
 
-Exemplo:
-
-| BPM | Intervalo |
-| --: | --------: |
-|  60 |   1000 ms |
-| 120 |    500 ms |
-| 180 |   ~333 ms |
+| BPM | Intervalo aproximado |
+| --: | -------------------: |
+|  60 |              1000 ms |
+| 120 |               500 ms |
+| 180 |               333 ms |
 
 Quanto maior o BPM:
 
 ```text
 BPM maior
-   ↓
-Sleep menor
-   ↓
+    ↓
+Intervalo menor
+    ↓
 Mais batidas
+```
+
+O intervalo é aplicado através de:
+
+```java
+Thread.sleep(intervalo);
 ```
 
 ---
 
 ## 🖥️ Painel de Status
 
-Existe uma Thread exclusiva:
+Existe uma Thread exclusiva responsável por mostrar o estado das faixas:
 
 ```java
 class PainelStatus extends Thread
 ```
 
-Ela atualiza o painel automaticamente a cada:
+O painel é atualizado automaticamente a cada:
 
 ```java
 Thread.sleep(2000);
 ```
 
-Exemplo:
+### Exemplo
 
 ```text
 ====================================================
@@ -157,9 +173,9 @@ Synth              PAUSADO        70      10
 
 | Comando           | Função                                  |
 | ----------------- | --------------------------------------- |
-| `pause bateria`   | ⏸️ Pausa a bateria                      |
-| `resume bateria`  | ▶️ Retoma a bateria                     |
-| `stop baixo`      | 🛑 Encerra o baixo                      |
+| `pause bateria`   | ⏸️ Pausa um instrumento                 |
+| `resume bateria`  | ▶️ Retoma um instrumento                |
+| `stop baixo`      | 🛑 Encerra uma faixa                    |
 | `bpm bateria 180` | 🥁 Altera o BPM                         |
 | `add guitarra`    | ➕ Adiciona instrumento com 120 BPM      |
 | `add piano 90`    | ➕ Adiciona instrumento com BPM definido |
@@ -167,19 +183,21 @@ Synth              PAUSADO        70      10
 | `help`            | ❓ Exibe os comandos                     |
 | `exit`            | 🚪 Encerra o programa                   |
 
-> ⚠️ Os comandos devem ser digitados **dentro do programa, após aparecer `DJ >`**, e não diretamente no PowerShell.
+> ⚠️ Os comandos devem ser digitados **dentro do programa depois que aparecer `DJ >`**, e não diretamente no PowerShell.
 
 ---
 
-## ➕ Instrumentos durante a execução
+## ➕ Adicionando novos instrumentos
 
-Também é possível adicionar novas faixas enquanto o programa já está funcionando:
+É possível adicionar instrumentos enquanto o programa está funcionando.
+
+Exemplo:
 
 ```text
 DJ > add guitarra 150
 ```
 
-Resultado:
+Uma nova Thread será criada:
 
 ```text
 🥁 Bateria   → Thread
@@ -188,13 +206,13 @@ Resultado:
 🎸 Guitarra  → Nova Thread
 ```
 
-As outras faixas continuam tocando normalmente.
+As outras faixas continuam funcionando normalmente.
 
 ---
 
 ## ▶️ Como executar
 
-### 1. Compile
+### 1. Compile o projeto
 
 ```bash
 javac MesaDJ.java
@@ -212,7 +230,7 @@ java MesaDJ
 DJ >
 ```
 
-Agora utilize os comandos:
+Agora os comandos podem ser utilizados:
 
 ```text
 DJ > pause baixo
@@ -225,7 +243,9 @@ DJ > exit
 
 ---
 
-## 🧪 Exemplo de teste
+## 🧪 Teste rápido
+
+Para testar as principais funções:
 
 ```text
 pause bateria
@@ -238,8 +258,6 @@ status
 exit
 ```
 
-Essa sequência demonstra praticamente todas as funcionalidades principais do projeto.
-
 ---
 
 ## ✅ Requisitos atendidos
@@ -251,7 +269,7 @@ Essa sequência demonstra praticamente todas as funcionalidades principais do pr
 | Retomar faixa                 |    ✅   |
 | Encerrar faixa                |    ✅   |
 | `synchronized`                |    ✅   |
-| `wait()` / `notifyAll()`      |    ✅   |
+| `wait()` e `notifyAll()`      |    ✅   |
 | `Thread.sleep()`              |    ✅   |
 | Controle de BPM               |    ✅   |
 | Painel automático             |    ✅   |
@@ -261,7 +279,7 @@ Essa sequência demonstra praticamente todas as funcionalidades principais do pr
 
 ---
 
-## 🛠️ Tecnologias
+## 🛠️ Tecnologias e conceitos
 
 ![Java](https://img.shields.io/badge/Java-Threads-orange?style=for-the-badge\&logo=openjdk)
 
@@ -276,16 +294,3 @@ Essa sequência demonstra praticamente todas as funcionalidades principais do pr
 📦 ConcurrentHashMap
 🔗 join()
 ```
-
----
-
-## 📚 Conceitos praticados
-
-* Programação concorrente
-* Threads
-* Sincronização
-* Regiões críticas
-* Controle de estado
-* Pausa e retomada de Threads
-* Encerramento seguro
-* Coleções concorrentes
