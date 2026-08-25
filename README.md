@@ -1,80 +1,291 @@
-# Mesa DJ com Threads - Java
+# 🎧 MesaDJ — Threads em Java
 
-Projeto da atividade **Threads I - Mesa DJ**, implementado em Java com threads independentes, sincronizacao, pausa/retomada segura, encerramento controlado e desafios extras.
+> Aplicação em **Java** que simula uma mesa de DJ utilizando **Threads**, onde cada instrumento funciona de forma independente.
 
-## Integrantes
+---
 
-- Eloi de Lima Sousa
-- Thiago Cardozo da Conceicao
-- Joao Ricardo Alves de Brito
-- Ewerton Guilherme da Silva
-- Saulo Eduardo Almeida dos Santos
-- Lucas Aprigio dos Santos
-- Pablo Arthur Eustaquio de Lima
+## 🎯 Objetivo
 
-## Requisitos atendidos
+O projeto demonstra conceitos de **programação concorrente em Java**.
 
-1. Cada instrumento e uma `Thread` independente.
-2. Bateria, baixo e synth iniciam simultaneamente.
-3. Controle individual por texto: `pause`, `resume`, `stop`.
-4. Estado interno protegido com `synchronized`.
-5. Pausa eficiente com `wait()` e retomada com `notifyAll()`.
-6. Encerramento seguro por flag + `interrupt()` + `join()`; nao usa `Thread.stop()`.
-7. BPM altera o tempo de `Thread.sleep()` (`60000 / BPM`).
-8. Thread extra `Painel-Status` atualiza o painel a cada 2 segundos.
-9. `add guitarra` adiciona um instrumento durante a execucao.
-10. `ConcurrentHashMap` permite que o painel percorra os instrumentos enquanto novos instrumentos sao adicionados.
-
-## Estrutura
+Cada instrumento possui sua própria Thread:
 
 ```text
-MesaDJ_Threads_Java/
-  src/
-    Main.java
-    MesaDJ.java
-    Instrumento.java
-  RELATORIO.md
-  ROTEIRO_APRESENTACAO.md
-  executar_windows.bat
-  executar_linux_mac.sh
+🎧 MesaDJ
+│
+├── 🥁 Bateria
+├── 🎸 Baixo
+├── 🎹 Synth
+├── 🎵 Novos instrumentos
+│
+└── 🖥️ Painel de Status
 ```
 
-## Como executar
+Assim, é possível **pausar, retomar, alterar o BPM ou encerrar uma faixa sem afetar as demais**.
 
-### Windows (Prompt/PowerShell)
+---
 
-```powershell
-javac -encoding UTF-8 -d out src\*.java
-java -cp out Main
+## ⚙️ Funcionalidades
+
+* 🧵 Cada instrumento possui uma **Thread independente**
+* ▶️ Iniciar instrumentos com `start()`
+* ⏸️ Pausar uma faixa
+* ▶️ Retomar uma faixa
+* 🛑 Encerrar uma faixa individualmente
+* 🔐 Controle de concorrência com `synchronized`
+* 💤 Pausa utilizando `wait()`
+* 🔔 Retomada utilizando `notifyAll()`
+* ⚡ Uso de `interrupt()`
+* 🥁 Controle de BPM com `Thread.sleep()`
+* 🖥️ Painel de status atualizado a cada **2 segundos**
+* ➕ Adição de novos instrumentos durante a execução
+* 📦 Armazenamento seguro utilizando `ConcurrentHashMap`
+* 🔚 Encerramento organizado utilizando `join()`
+
+---
+
+## 🧠 Como funciona?
+
+Cada instrumento é representado pela classe:
+
+```java
+class FaixaInstrumento extends Thread
 ```
 
-Ou execute `executar_windows.bat`.
+Ao criar um novo instrumento:
 
-### Linux/macOS
+```java
+instrumento.start();
+```
+
+uma nova Thread começa a executar o método:
+
+```java
+run()
+```
+
+Cada faixa possui seu próprio:
+
+```text
+🎵 Nome
+▶️ Estado
+🥁 BPM
+🔢 Quantidade de batidas
+```
+
+---
+
+## 🔐 Sincronização
+
+Os estados dos instrumentos são protegidos com:
+
+```java
+synchronized
+```
+
+Isso evita que duas Threads alterem o mesmo instrumento ao mesmo tempo.
+
+Para controlar pausa e retomada são utilizados:
+
+```java
+wait();
+notifyAll();
+interrupt();
+```
+
+---
+
+## 🥁 Controle de BPM
+
+O intervalo entre as batidas é calculado usando:
+
+```java
+60000 / BPM
+```
+
+Exemplo:
+
+| BPM | Intervalo |
+| --: | --------: |
+|  60 |   1000 ms |
+| 120 |    500 ms |
+| 180 |   ~333 ms |
+
+Quanto maior o BPM:
+
+```text
+BPM maior
+   ↓
+Sleep menor
+   ↓
+Mais batidas
+```
+
+---
+
+## 🖥️ Painel de Status
+
+Existe uma Thread exclusiva:
+
+```java
+class PainelStatus extends Thread
+```
+
+Ela atualiza o painel automaticamente a cada:
+
+```java
+Thread.sleep(2000);
+```
+
+Exemplo:
+
+```text
+====================================================
+               MESA DJ - THREADS
+====================================================
+INSTRUMENTO        STATUS        BPM      BATIDAS
+----------------------------------------------------
+Bateria            TOCANDO       120      25
+Baixo              TOCANDO        90      18
+Synth              PAUSADO        70      10
+====================================================
+```
+
+---
+
+## 🎛️ Comandos
+
+| Comando           | Função                                  |
+| ----------------- | --------------------------------------- |
+| `pause bateria`   | ⏸️ Pausa a bateria                      |
+| `resume bateria`  | ▶️ Retoma a bateria                     |
+| `stop baixo`      | 🛑 Encerra o baixo                      |
+| `bpm bateria 180` | 🥁 Altera o BPM                         |
+| `add guitarra`    | ➕ Adiciona instrumento com 120 BPM      |
+| `add piano 90`    | ➕ Adiciona instrumento com BPM definido |
+| `status`          | 🖥️ Atualiza o painel                   |
+| `help`            | ❓ Exibe os comandos                     |
+| `exit`            | 🚪 Encerra o programa                   |
+
+> ⚠️ Os comandos devem ser digitados **dentro do programa, após aparecer `DJ >`**, e não diretamente no PowerShell.
+
+---
+
+## ➕ Instrumentos durante a execução
+
+Também é possível adicionar novas faixas enquanto o programa já está funcionando:
+
+```text
+DJ > add guitarra 150
+```
+
+Resultado:
+
+```text
+🥁 Bateria   → Thread
+🎸 Baixo     → Thread
+🎹 Synth     → Thread
+🎸 Guitarra  → Nova Thread
+```
+
+As outras faixas continuam tocando normalmente.
+
+---
+
+## ▶️ Como executar
+
+### 1. Compile
 
 ```bash
-chmod +x executar_linux_mac.sh
-./executar_linux_mac.sh
+javac MesaDJ.java
 ```
 
-## Comandos
+### 2. Execute
+
+```bash
+java MesaDJ
+```
+
+### 3. Aguarde aparecer
+
+```text
+DJ >
+```
+
+Agora utilize os comandos:
+
+```text
+DJ > pause baixo
+DJ > resume baixo
+DJ > bpm bateria 180
+DJ > add guitarra 150
+DJ > status
+DJ > exit
+```
+
+---
+
+## 🧪 Exemplo de teste
 
 ```text
 pause bateria
 resume bateria
+bpm bateria 200
+add guitarra 150
+pause guitarra
 stop synth
-bpm baixo 150
-add guitarra
-add piano 100
-pauseall
-resumeall
 status
-panel on
-panel off
-clear on
-clear off
-help
 exit
 ```
 
-> Observacao: o painel usa sequencias ANSI para limpar a tela. Se o console da IDE mostrar caracteres estranhos, use `clear off`.
+Essa sequência demonstra praticamente todas as funcionalidades principais do projeto.
+
+---
+
+## ✅ Requisitos atendidos
+
+| Requisito                     | Status |
+| ----------------------------- | :----: |
+| Threads independentes         |    ✅   |
+| Pausar faixa                  |    ✅   |
+| Retomar faixa                 |    ✅   |
+| Encerrar faixa                |    ✅   |
+| `synchronized`                |    ✅   |
+| `wait()` / `notifyAll()`      |    ✅   |
+| `Thread.sleep()`              |    ✅   |
+| Controle de BPM               |    ✅   |
+| Painel automático             |    ✅   |
+| Atualização a cada 2 segundos |    ✅   |
+| Adicionar instrumentos        |    ✅   |
+| Encerramento seguro           |    ✅   |
+
+---
+
+## 🛠️ Tecnologias
+
+![Java](https://img.shields.io/badge/Java-Threads-orange?style=for-the-badge\&logo=openjdk)
+
+```text
+☕ Java
+🧵 Threads
+🔐 synchronized
+💤 wait()
+🔔 notifyAll()
+⚡ interrupt()
+⏱️ Thread.sleep()
+📦 ConcurrentHashMap
+🔗 join()
+```
+
+---
+
+## 📚 Conceitos praticados
+
+* Programação concorrente
+* Threads
+* Sincronização
+* Regiões críticas
+* Controle de estado
+* Pausa e retomada de Threads
+* Encerramento seguro
+* Coleções concorrentes
