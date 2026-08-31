@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mesa DJ</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Spring Boot + Web Audio</p>
+        <h1>Mesa DJ</h1>
+      </div>
+      <div class="master">
+        <label for="masterVolume">Master</label>
+        <input id="masterVolume" type="range" min="0" max="1.4" step="0.01" value="0.9">
+        <strong id="masterValue">90%</strong>
+      </div>
+    </header>
+
+    <section class="transport" aria-label="Controles do player">
+      <button id="playPause" type="button">Play</button>
+      <button id="stop" type="button">Stop</button>
+      <button id="nextSong" type="button">Proxima musica</button>
+      <label class="song-loader">
+        <span>Carregar musica completa</span>
+        <input id="songFiles" type="file" accept="audio/*" multiple>
+      </label>
+      <div class="now-playing">
+        <span id="trackTitle">Nenhuma musica carregada</span>
+        <small id="timeReadout">00:00 / 00:00</small>
+      </div>
+    </section>
+
+    <section class="library" aria-label="Biblioteca de musicas">
+      <div class="section-title">
+        <h2>Biblioteca</h2>
+        <button id="searchLibrary" type="button">Buscar</button>
+      </div>
+      <div class="library-search">
+        <input id="libraryQuery" type="search" placeholder="Filtrar por pasta ou nome da musica">
+      </div>
+      <div id="libraryList" class="library-list"></div>
+    </section>
+
+    <section class="mixer" aria-label="Faixas da mesa">
+      <div class="section-title">
+        <h2>Separacao das faixas</h2>
+        <button id="resetStems" type="button">Reset</button>
+      </div>
+      <div id="tracks" class="tracks"></div>
+    </section>
+
+    <section class="equalizer" aria-label="Equalizador">
+      <div class="section-title">
+        <h2>Equalizador</h2>
+        <button id="resetEq" type="button">Reset</button>
+      </div>
+      <div id="eqBands" class="eq-bands"></div>
+    </section>
+  </main>
+
+  <template id="trackTemplate">
+    <article class="track">
+      <span class="group"></span>
+      <h3></h3>
+      <div class="meter" aria-hidden="true">
+        <span class="meter-fill"></span>
+      </div>
+      <strong class="db-value">-60 dB</strong>
+      <div class="track-actions">
+        <button class="mute" type="button">Mute</button>
+        <button class="solo" type="button">Solo</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="/app.js"></script>
+</body>
+</html>

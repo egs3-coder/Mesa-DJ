@@ -1,296 +1,62 @@
-# 🎧 MesaDJ — Threads em Java
+# Mesa DJ
 
-> Aplicação desenvolvida em **Java** que simula uma mesa de DJ utilizando **Threads**, onde cada instrumento funciona de forma independente.
+Projeto Java com Spring Boot e Maven para controlar uma mesa simples de DJ no navegador.
 
----
+## Como rodar
 
-## 👥 Integrantes
+No Windows, dentro da pasta do projeto:
 
-| Integrante                                 |
-| ------------------------------------------ |
-| 👨‍💻 **Ewerton Guilherme da Silva**       |
-| 👨‍💻 **Pablo Arthur Eustáquio de Lima**   |
-| 👨‍💻 **Saulo Eduardo Almeida dos Santos** |
-| 👨‍💻 **Lucas Aprigio dos Santos**         |
-| 👨‍💻 **João Ricardo Alves de Brito**      |
-| 👨‍💻 **Thiago Cardozo da Conceição**      |
-| 👨‍💻 **Eloi de Lima Sousa**               |
+```powershell
+.\mvnw.cmd spring-boot:run
+```
 
----
+Para rodar apontando para uma pasta de musicas:
 
-## 🎯 Objetivo
+```powershell
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.arguments=--music.dir=C:\Musicas"
+```
 
-O projeto demonstra conceitos de **programação concorrente em Java**.
-
-Cada instrumento possui sua própria Thread:
+Exemplo com subpastas:
 
 ```text
-🎧 MesaDJ
-│
-├── 🥁 Bateria
-├── 🎸 Baixo
-├── 🎹 Synth
-├── 🎵 Novos instrumentos
-│
-└── 🖥️ Painel de Status
+C:\Musicas
+  Rock
+    musica-01.mp3
+  Eletronica
+    set-01.wav
 ```
 
-Assim, é possível **pausar, retomar, alterar o BPM ou encerrar uma faixa sem afetar as demais**.
-
----
-
-## ⚙️ Funcionalidades
-
-* 🧵 Cada instrumento possui uma **Thread independente**
-* ▶️ Inicialização das Threads com `start()`
-* ⏸️ Pausar instrumentos individualmente
-* ▶️ Retomar instrumentos
-* 🛑 Encerrar uma faixa sem interromper as outras
-* 🔐 Sincronização utilizando `synchronized`
-* 💤 Pausa utilizando `wait()`
-* 🔔 Retomada utilizando `notifyAll()`
-* ⚡ Controle utilizando `interrupt()`
-* 🥁 Simulação de BPM com `Thread.sleep()`
-* 🖥️ Painel atualizado automaticamente a cada **2 segundos**
-* ➕ Adição de novos instrumentos durante a execução
-* 📦 Utilização de `ConcurrentHashMap`
-* 🔚 Encerramento organizado das Threads
-
----
-
-## 🧠 Como funciona?
-
-Cada instrumento é representado pela classe:
-
-```java
-class FaixaInstrumento extends Thread
-```
-
-Quando um instrumento é iniciado:
-
-```java
-instrumento.start();
-```
-
-uma nova Thread começa a executar o método:
-
-```java
-run();
-```
-
-Cada faixa possui seu próprio:
-
-* 🎵 Nome
-* ▶️ Estado
-* 🥁 BPM
-* 🔢 Número de batidas
-
----
-
-## 🔐 Sincronização
-
-Os estados dos instrumentos são protegidos utilizando:
-
-```java
-synchronized
-```
-
-Isso evita que diferentes Threads alterem o mesmo estado simultaneamente.
-
-Para controlar pausa e retomada são utilizados:
-
-```java
-wait();
-notifyAll();
-interrupt();
-```
-
----
-
-## 🥁 Controle de BPM
-
-O intervalo entre as batidas é calculado utilizando:
+Depois abra:
 
 ```text
-60000 / BPM
+http://localhost:8080
 ```
 
-| BPM | Intervalo aproximado |
-| --: | -------------------: |
-|  60 |              1000 ms |
-| 120 |               500 ms |
-| 180 |               333 ms |
+Na tela, use a area "Biblioteca" para buscar por nome da musica ou nome da pasta. Se pesquisar `Rock`, o app lista as musicas dentro dessa pasta.
 
-Quanto maior o BPM:
+Tambem da para testar direto pelo navegador:
 
 ```text
-BPM maior
-    ↓
-Intervalo menor
-    ↓
-Mais batidas
+http://localhost:8080/api/library?q=Rock
 ```
 
-O intervalo é aplicado através de:
+## O que a interface faz
 
-```java
-Thread.sleep(intervalo);
-```
+- Play, pause, stop e proxima musica.
+- Playlist simples para musicas completas, carregadas somente no inicio.
+- Biblioteca local usando a pasta passada no comando `--music.dir`.
+- Separacao aproximada da musica em Kick, Caixa, Hats, Surdos, Guitarras, Baixo, Cordas/Piano, Vocais, Vocal principal e Backing Vocals.
+- Medidores de dB se mexendo em cada faixa conforme a musica toca.
+- Mute e solo por faixa.
+- Volume master.
+- Equalizador por frequencias: 60 Hz, 170 Hz, 350 Hz, 1 kHz, 3.5 kHz e 10 kHz.
 
----
+## Observacao importante
 
-## 🖥️ Painel de Status
+O app agora carrega uma musica uma unica vez e cria as faixas automaticamente a partir dela. Essa separacao e uma aproximacao por filtros de frequencia usando Web Audio API, entao ela nao isola perfeitamente vocal, bateria e instrumentos como uma ferramenta de inteligencia artificial faria. Mesmo assim, ela permite demonstrar a ideia da mesa: a musica entra no comeco, passa pela separacao, mostra os dB por faixa, e depois passa pelo equalizador.
 
-Existe uma Thread exclusiva responsável por mostrar o estado das faixas:
-
-```java
-class PainelStatus extends Thread
-```
-
-O painel é atualizado automaticamente a cada:
-
-```java
-Thread.sleep(2000);
-```
-
-### Exemplo
+Fluxo do audio:
 
 ```text
-====================================================
-               MESA DJ - THREADS
-====================================================
-INSTRUMENTO        STATUS        BPM      BATIDAS
-----------------------------------------------------
-Bateria            TOCANDO       120      25
-Baixo              TOCANDO        90      18
-Synth              PAUSADO        70      10
-====================================================
-```
-
----
-
-## 🎛️ Comandos
-
-| Comando           | Função                                  |
-| ----------------- | --------------------------------------- |
-| `pause bateria`   | ⏸️ Pausa um instrumento                 |
-| `resume bateria`  | ▶️ Retoma um instrumento                |
-| `stop baixo`      | 🛑 Encerra uma faixa                    |
-| `bpm bateria 180` | 🥁 Altera o BPM                         |
-| `add guitarra`    | ➕ Adiciona instrumento com 120 BPM      |
-| `add piano 90`    | ➕ Adiciona instrumento com BPM definido |
-| `status`          | 🖥️ Atualiza o painel                   |
-| `help`            | ❓ Exibe os comandos                     |
-| `exit`            | 🚪 Encerra o programa                   |
-
-> ⚠️ Os comandos devem ser digitados **dentro do programa depois que aparecer `DJ >`**, e não diretamente no PowerShell.
-
----
-
-## ➕ Adicionando novos instrumentos
-
-É possível adicionar instrumentos enquanto o programa está funcionando.
-
-Exemplo:
-
-```text
-DJ > add guitarra 150
-```
-
-Uma nova Thread será criada:
-
-```text
-🥁 Bateria   → Thread
-🎸 Baixo     → Thread
-🎹 Synth     → Thread
-🎸 Guitarra  → Nova Thread
-```
-
-As outras faixas continuam funcionando normalmente.
-
----
-
-## ▶️ Como executar
-
-### 1. Compile o projeto
-
-```bash
-javac MesaDJ.java
-```
-
-### 2. Execute
-
-```bash
-java MesaDJ
-```
-
-### 3. Aguarde aparecer
-
-```text
-DJ >
-```
-
-Agora os comandos podem ser utilizados:
-
-```text
-DJ > pause baixo
-DJ > resume baixo
-DJ > bpm bateria 180
-DJ > add guitarra 150
-DJ > status
-DJ > exit
-```
-
----
-
-## 🧪 Teste rápido
-
-Para testar as principais funções:
-
-```text
-pause bateria
-resume bateria
-bpm bateria 200
-add guitarra 150
-pause guitarra
-stop synth
-status
-exit
-```
-
----
-
-## ✅ Requisitos atendidos
-
-| Requisito                     | Status |
-| ----------------------------- | :----: |
-| Threads independentes         |    ✅   |
-| Pausar faixa                  |    ✅   |
-| Retomar faixa                 |    ✅   |
-| Encerrar faixa                |    ✅   |
-| `synchronized`                |    ✅   |
-| `wait()` e `notifyAll()`      |    ✅   |
-| `Thread.sleep()`              |    ✅   |
-| Controle de BPM               |    ✅   |
-| Painel automático             |    ✅   |
-| Atualização a cada 2 segundos |    ✅   |
-| Adicionar instrumentos        |    ✅   |
-| Encerramento seguro           |    ✅   |
-
----
-
-## 🛠️ Tecnologias e conceitos
-
-![Java](https://img.shields.io/badge/Java-Threads-orange?style=for-the-badge\&logo=openjdk)
-
-```text
-☕ Java
-🧵 Threads
-🔐 synchronized
-💤 wait()
-🔔 notifyAll()
-⚡ interrupt()
-⏱️ Thread.sleep()
-📦 ConcurrentHashMap
-🔗 join()
+Musica carregada -> Separacao das faixas -> Equalizador -> Master
 ```
