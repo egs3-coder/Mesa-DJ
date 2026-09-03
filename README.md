@@ -1,62 +1,271 @@
-# Mesa DJ
+# 🎚️ Mesa DJ — Heart Peripheral
 
-Projeto Java com Spring Boot e Maven para controlar uma mesa simples de DJ no navegador.
+Projeto de **concorrência em Java** baseado no desafio de simular uma mesa de DJ onde cada instrumento/faixa toca de forma independente.
 
-## Como rodar
+A música escolhida é **“Heart Peripheral” — AM Contra**, da biblioteca gratuita Cambridge-MT. A página lista o *Edited Excerpt* com 24 tracks (~40 MB) e o multitrack completo com 32 tracks (~275 MB).
 
-No Windows, dentro da pasta do projeto:
+Fonte:
+https://www.cambridge-mt.com/ms3/mtk/
+
+## 🎯 O foco
+
+Esta versão **não usa IA nem separador de stems**. Os arquivos já vêm separados.
+
+O objetivo é demonstrar:
+
+- `Thread`
+- `Runnable`
+- `synchronized`
+- `wait()`
+- `notifyAll()`
+- `volatile`
+- estados independentes
+- execução concorrente
+- pausa/retomada
+- encerramento seguro
+
+Arquitetura:
+
+```text
+                  MESA DJ
+                     |
+          +----------+----------+
+          |          |          |
+       Thread     Thread      Thread
+       BASS       DRUMS       SYNTH
+          |          |          |
+       bass.wav   drums.wav   synth.wav
+```
+
+Cada WAV vira um `AudioTrack`, e cada `AudioTrack` possui sua própria `Thread` e `Clip`.
+
+## 📁 Instalação dos stems
+
+Baixe o **Edited Excerpt** de “Heart Peripheral” no Cambridge-MT.
+
+Coloque os WAVs em:
+
+```text
+music/heart-peripheral/
+```
+
+Exemplo:
+
+```text
+music/
+└── heart-peripheral/
+    ├── 01 Kick.wav
+    ├── 02 Bass.wav
+    ├── 03 Synth.wav
+    └── ...
+```
+
+O programa detecta automaticamente todos os `.wav`, portanto os nomes reais dos arquivos não precisam ser iguais aos exemplos.
+
+### Por que WAV?
+
+Use os WAV originais do multitrack. O projeto usa `javax.sound.sampled`, da própria plataforma Java, para reprodução PCM/WAV. Não é necessário converter para MP3.
+
+## ▶️ Executar
+
+Requisito:
+
+- Java 17+
+- Maven opcional
+- saída de áudio disponível
+
+Pela IDE, execute:
+
+```text
+src/main/java/com/mesadj/MesaDjApplication.java
+```
+
+Ou compile:
 
 ```powershell
-.\mvnw.cmd spring-boot:run
+mvn compile
 ```
 
-Para rodar apontando para uma pasta de musicas:
+e execute a classe `com.mesadj.MesaDjApplication` pela IDE.
 
-```powershell
-.\mvnw.cmd spring-boot:run "-Dspring-boot.run.arguments=--music.dir=C:\Musicas"
-```
-
-Exemplo com subpastas:
+## 🎛️ Comandos
 
 ```text
-C:\Musicas
-  Rock
-    musica-01.mp3
-  Eletronica
-    set-01.wav
+DJ > HELP
+DJ > LIST
+DJ > STATUS
+DJ > PAUSE bass
+DJ > RESUME bass
+DJ > STOP bass
+DJ > PAUSE ALL
+DJ > RESUME ALL
+DJ > STOP ALL
+DJ > EXIT
 ```
 
-Depois abra:
+O programa aceita também comandos parciais. Se existir uma faixa chamada `02 Deep Bass Synth.wav`, por exemplo:
 
 ```text
-http://localhost:8080
+PAUSE bass
 ```
 
-Na tela, use a area "Biblioteca" para buscar por nome da musica ou nome da pasta. Se pesquisar `Rock`, o app lista as musicas dentro dessa pasta.
+pode encontrá-la.
 
-Tambem da para testar direto pelo navegador:
+## 🧵 Como a Thread funciona
+
+Cada `AudioTrack` implementa:
+
+```java
+Runnable
+```
+
+e recebe uma thread:
+
+```java
+Thread thread = new Thread(this, "AudioTrack-" + name);
+thread.start();
+```
+
+A thread mantém o seu próprio `Clip`.
+
+Enquanto estiver tocando:
 
 ```text
-http://localhost:8080/api/library?q=Rock
+PLAYING
+   ↓
+clip.start()
 ```
 
-## O que a interface faz
-
-- Play, pause, stop e proxima musica.
-- Playlist simples para musicas completas, carregadas somente no inicio.
-- Biblioteca local usando a pasta passada no comando `--music.dir`.
-- Separacao aproximada da musica em Kick, Caixa, Hats, Surdos, Guitarras, Baixo, Cordas/Piano, Vocais, Vocal principal e Backing Vocals.
-- Medidores de dB se mexendo em cada faixa conforme a musica toca.
-- Mute e solo por faixa.
-- Volume master.
-- Equalizador por frequencias: 60 Hz, 170 Hz, 350 Hz, 1 kHz, 3.5 kHz e 10 kHz.
-
-## Observacao importante
-
-O app agora carrega uma musica uma unica vez e cria as faixas automaticamente a partir dela. Essa separacao e uma aproximacao por filtros de frequencia usando Web Audio API, entao ela nao isola perfeitamente vocal, bateria e instrumentos como uma ferramenta de inteligencia artificial faria. Mesmo assim, ela permite demonstrar a ideia da mesa: a musica entra no comeco, passa pela separacao, mostra os dB por faixa, e depois passa pelo equalizador.
-
-Fluxo do audio:
+Ao pausar:
 
 ```text
-Musica carregada -> Separacao das faixas -> Equalizador -> Master
+clip.stop()
+state = PAUSED
 ```
+
+A posição do `Clip` é preservada, então `RESUME` continua daquele ponto.
+
+## 🔐 Sincronização
+
+Os métodos que alteram o estado são:
+
+```java
+public synchronized void pauseTrack()
+public synchronized void resumeTrack()
+public synchronized void stopTrack()
+```
+
+Isso protege o estado da faixa contra alterações concorrentes.
+
+Quando pausada, a thread entra em:
+
+```java
+wait();
+```
+
+Ela não fica gastando CPU em um loop inútil.
+
+Quando recebe `RESUME`:
+
+```java
+notifyAll();
+```
+
+A thread acorda e continua.
+
+## 🛑 Encerramento seguro
+
+Não usamos:
+
+```java
+Thread.stop();
+```
+
+Em vez disso existe:
+
+```java
+private volatile boolean shutdownRequested;
+```
+
+Ao executar:
+
+```text
+EXIT
+```
+
+a aplicação sinaliza o encerramento, acorda threads que estejam esperando e fecha os `Clip`s.
+
+## 🔁 Loop contínuo
+
+Cada faixa utiliza:
+
+```java
+clip.loop(Clip.LOOP_CONTINUOUSLY);
+```
+
+Isso permite que cada instrumento continue tocando continuamente enquanto o DJ controla as outras faixas.
+
+## 🧪 Demonstração para o professor
+
+1. Rode o programa.
+2. Execute `STATUS`.
+3. Mostre que existem várias `THREAD`s.
+4. Execute:
+
+```text
+PAUSE bass
+```
+
+5. Mostre que somente o baixo mudou para `PAUSED`.
+6. Execute:
+
+```text
+RESUME bass
+```
+
+7. Pause duas faixas:
+
+```text
+PAUSE bass
+PAUSE synth
+```
+
+8. Retome apenas uma:
+
+```text
+RESUME synth
+```
+
+9. Finalize:
+
+```text
+EXIT
+```
+
+e mostre as mensagens de encerramento das threads.
+
+## 🧠 O que o projeto prova
+
+A aplicação transforma uma música multitrack em um pequeno sistema concorrente:
+
+```text
+N arquivos WAV
+      ↓
+N AudioTracks
+      ↓
+N Threads
+      ↓
+N estados independentes
+      ↓
+comandos do DJ
+      ↓
+synchronized + wait/notify + volatile
+```
+
+O Spring Boot foi retirado desta versão de propósito. Para **este desafio específico**, Java puro deixa os conceitos pedidos muito mais evidentes. Se depois houver necessidade de uma interface, Spring Boot pode entrar como camada de apresentação/API sem mudar o núcleo de concorrência.
+
+## ⚠️ Observação
+
+`Clip` carrega o áudio em memória. Por isso, para a demonstração, o **Edited Excerpt** de aproximadamente 40 MB é mais indicado que o multitrack completo de aproximadamente 275 MB.
+
+A biblioteca Cambridge-MT é a fonte dos arquivos; respeite as condições de uso e atribuição indicadas pelo próprio site.
