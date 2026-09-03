@@ -1,5 +1,15 @@
 # 🎚️ Mesa DJ — Heart Peripheral
 
+## 👥 Integrantes
+
+- Ewerton Guilherme da Silva
+- Pablo Arthur Eustáquio de Lima
+- Saulo Eduardo Almeida dos Santos
+- Lucas Aprigio dos Santos
+- João Ricardo Alves de Brito
+- Thiago Cardozo da Conceição
+- Eloi de Lima Sousa
+
 Projeto de **concorrência em Java** baseado no desafio de simular uma mesa de DJ onde cada instrumento/faixa toca de forma independente.
 
 A música escolhida é **“Heart Peripheral” — AM Contra**, da biblioteca gratuita Cambridge-MT. A página lista o *Edited Excerpt* com 24 tracks (~40 MB) e o multitrack completo com 32 tracks (~275 MB).
